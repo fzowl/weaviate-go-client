@@ -414,7 +414,7 @@ func TestVoyageAI_Integration_FlexibleDimensions(t *testing.T) {
 				Class: className,
 				ID:    strfmt.UUID("00000000-0000-0000-0000-000000000099"),
 				Properties: map[string]interface{}{
-					"content": "Testing flexible dimensions with VoyageAI embeddings.",
+					"content": "Testing flexible dimensions with VoyageAI by MongoDB embeddings.",
 				},
 			}
 
