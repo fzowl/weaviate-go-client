@@ -11,8 +11,9 @@ import (
 	"github.com/weaviate/weaviate/entities/models"
 )
 
-// Voyage-4 family model specifications
-var voyage4Models = []struct {
+// Currently available VoyageAI by MongoDB embedding models (docs.voyageai.com).
+// Kept in sync with the model list published at https://docs.voyageai.com/docs/embeddings.
+var voyageModels = []struct {
 	name              string
 	model             string
 	className         string
@@ -20,6 +21,14 @@ var voyage4Models = []struct {
 	maxInputTokens    int
 	description       string
 }{
+	{
+		name:              "voyage-4-large",
+		model:             "voyage-4-large",
+		className:         "VoyageTestVoyage4Large",
+		defaultDimensions: 1024,
+		maxInputTokens:    32000,
+		description:       "Highest retrieval quality",
+	},
 	{
 		name:              "voyage-4",
 		model:             "voyage-4",
@@ -37,16 +46,71 @@ var voyage4Models = []struct {
 		description:       "Best performance-to-cost ratio, highest batch throughput",
 	},
 	{
-		name:              "voyage-4-large",
-		model:             "voyage-4-large",
-		className:         "VoyageTestVoyage4Large",
+		name:              "voyage-4-nano",
+		model:             "voyage-4-nano",
+		className:         "VoyageTestVoyage4Nano",
 		defaultDimensions: 1024,
 		maxInputTokens:    32000,
-		description:       "Highest retrieval quality",
+		description:       "Open-weight, lightweight general-purpose embedding model",
+	},
+	{
+		name:              "voyage-code-4",
+		model:             "voyage-code-4",
+		className:         "VoyageTestVoyageCode4",
+		defaultDimensions: 1024,
+		maxInputTokens:    32000,
+		description:       "Optimized for code retrieval",
+	},
+	{
+		name:              "voyage-finance-2",
+		model:             "voyage-finance-2",
+		className:         "VoyageTestVoyageFinance2",
+		defaultDimensions: 1024,
+		maxInputTokens:    32000,
+		description:       "Optimized for finance retrieval",
+	},
+	{
+		name:              "voyage-law-2",
+		model:             "voyage-law-2",
+		className:         "VoyageTestVoyageLaw2",
+		defaultDimensions: 1024,
+		maxInputTokens:    16000,
+		description:       "Optimized for legal retrieval",
 	},
 }
 
-// TestVoyageAI_SchemaConfiguration tests schema creation with VoyageAI vectorizer
+// Contextualized chunk embedding models offered by VoyageAI by MongoDB.
+// These models are served through the contextualized_embed API, whose official
+// spec accepts both input shapes, inputs: Union[List[List[str]], List[str]]
+// (a list of documents, each a list of chunk strings, or a flat list of strings).
+// See https://docs.voyageai.com/docs/contextualized-chunk-embeddings.
+var voyageContextModels = []struct {
+	name              string
+	model             string
+	className         string
+	defaultDimensions int
+	maxInputTokens    int
+	description       string
+}{
+	{
+		name:              "voyage-context-4",
+		model:             "voyage-context-4",
+		className:         "VoyageTestVoyageContext4",
+		defaultDimensions: 1024,
+		maxInputTokens:    32000,
+		description:       "Current contextualized chunk embedding model",
+	},
+	{
+		name:              "voyage-context-3",
+		model:             "voyage-context-3",
+		className:         "VoyageTestVoyageContext3",
+		defaultDimensions: 1024,
+		maxInputTokens:    32000,
+		description:       "Legacy contextualized chunk embedding model",
+	},
+}
+
+// TestVoyageAI_SchemaConfiguration tests schema creation with the VoyageAI by MongoDB vectorizer
 func TestVoyageAI_SchemaConfiguration(t *testing.T) {
 	t.Run("setup weaviate", func(t *testing.T) {
 		err := testenv.SetupLocalWeaviate()
@@ -55,7 +119,16 @@ func TestVoyageAI_SchemaConfiguration(t *testing.T) {
 		}
 	})
 
-	for _, modelSpec := range voyage4Models {
+	allModels := append(append([]struct {
+		name              string
+		model             string
+		className         string
+		defaultDimensions int
+		maxInputTokens    int
+		description       string
+	}{}, voyageModels...), voyageContextModels...)
+
+	for _, modelSpec := range allModels {
 		t.Run("Create schema with "+modelSpec.name, func(t *testing.T) {
 			client := testsuit.CreateTestClient(false)
 			ctx := context.Background()
@@ -194,7 +267,7 @@ func TestVoyageAI_FlexibleDimensions(t *testing.T) {
 	})
 }
 
-// TestVoyageAI_NamedVectors tests creating schemas with named vectors using VoyageAI
+// TestVoyageAI_NamedVectors tests creating schemas with named vectors using VoyageAI by MongoDB
 func TestVoyageAI_NamedVectors(t *testing.T) {
 	t.Run("setup weaviate", func(t *testing.T) {
 		err := testenv.SetupLocalWeaviate()
